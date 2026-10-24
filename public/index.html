@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Out of the Loop - Indian Cuisine Edition</title>
+  <meta name="description" content="A real-time Indian food social deduction party game. Spot the imposter among your friends!">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- FUNNY FULL-SCREEN IMPOSTER REVEAL OVERLAY -->
+  <div id="funny-reveal-overlay" class="funny-reveal-overlay hidden">
+    <div class="funny-reveal-spotlight"></div>
+    <div id="funny-imposter-avatar" class="funny-reveal-avatar">🤫</div>
+    <div id="funny-imposter-caption" class="funny-caption">CAUGHT RED HANDED! 🚨</div>
+    <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 24px;">The truth is out in the open!</p>
+    <button id="btn-close-funny-overlay" class="btn btn-large" style="max-width: 320px; z-index: 1000;">
+      See Full Leaderboard & Results 🏆
+    </button>
+  </div>
+
+  <div id="app">
+
+    <!-- FLOATING CORNER ADMIN PANELS (OUTSIDE CENTER DIV) -->
+    <div id="admin-left-turn-permissions-panel" class="admin-side-panel-left hidden"></div>
+    <div id="admin-right-kick-panel" class="admin-side-panel-right hidden"></div>
+
+    <!-- LANDING / ENTRY SCREEN -->
+    <div id="landing-view" class="panel">
+      <div class="badge badge-primary" style="margin: 0 auto 16px auto; display: table;">INDIAN CUISINE EDITION 🫓</div>
+      <h1 class="app-title">OUT OF THE LOOP</h1>
+      <p class="app-subtitle">Multi-Round Social Deduction & Bluffing</p>
+
+      <div class="entry-grid">
+        <!-- Join as Player Tile -->
+        <div id="btn-select-player" class="entry-card">
+          <div class="icon">📱</div>
+          <h3>Join as Player</h3>
+          <p>Join from your mobile phone or browser to enter your name and peek at your secret Indian dish!</p>
+          <button class="btn btn-large" style="margin-top: 12px;">Enter Game Room</button>
+        </div>
+
+        <!-- Server / Host Tile -->
+        <div id="btn-select-server" class="entry-card">
+          <div class="icon">👑</div>
+          <h3>Server Control Panel</h3>
+          <p>Host view to monitor rounds, configure imposters, and manage elimination voting.</p>
+          <button class="btn btn-secondary btn-large" style="margin-top: 12px;">Host Login</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVER PASSWORD MODAL -->
+    <div id="password-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h2 style="margin-bottom: 8px;">👑 Server Control Access</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.95rem;">
+          Enter host security password.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="server-pass-input">Password</label>
+          <input type="password" id="server-pass-input" class="input-text" placeholder="Enter password...">
+        </div>
+
+        <div id="password-error" style="color: var(--danger); font-size: 0.9rem; margin-bottom: 16px;"></div>
+
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="btn-cancel-pass" class="btn btn-secondary">Cancel</button>
+          <button id="btn-submit-pass" class="btn">Login to Server</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER JOIN FORM VIEW -->
+    <div id="player-join-view" class="panel hidden">
+      <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-align: center;">Join the Lobby</h2>
+      <p class="app-subtitle">Choose your avatar & name</p>
+
+      <div style="max-width: 400px; margin: 0 auto;">
+        <div class="form-group">
+          <label class="form-label">Pick Your Avatar</label>
+          <div class="avatar-picker">
+            <div class="avatar-option selected" data-avatar="🍔">🍔</div>
+            <div class="avatar-option" data-avatar="🍕">🍕</div>
+            <div class="avatar-option" data-avatar="🌮">🌮</div>
+            <div class="avatar-option" data-avatar="🍣">🍣</div>
+            <div class="avatar-option" data-avatar="🍩">🍩</div>
+            <div class="avatar-option" data-avatar="🍦">🍦</div>
+            <div class="avatar-option" data-avatar="🥟">🥟</div>
+            <div class="avatar-option" data-avatar="🥑">🥑</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="player-name-input">Your Name</label>
+          <input type="text" id="player-name-input" class="input-text" placeholder="e.g. Alex, Sam, Jordan..." maxlength="15">
+        </div>
+
+        <div id="join-error" style="color: var(--danger); font-size: 0.9rem; margin-bottom: 16px;"></div>
+
+        <button id="btn-join-submit" class="btn btn-large" style="margin-bottom: 12px;">Join Game</button>
+        <button class="btn btn-secondary btn-large btn-back-home">Back to Home</button>
+      </div>
+    </div>
+
+    <!-- PLAYER LOBBY & IN-GAME VIEW -->
+    <div id="player-lobby-view" class="panel hidden">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="badge badge-primary">PLAYER VIEW</div>
+        <button class="btn btn-secondary btn-back-home" style="padding: 6px 14px; font-size: 0.85rem;">Leave</button>
+      </div>
+
+      <div id="player-lobby-status" style="text-align: center; color: var(--text-muted); margin-bottom: 20px;">
+        Waiting for Host to start the game...
+      </div>
+
+      <!-- Eliminated Spectator Banner -->
+      <div id="player-eliminated-banner" class="question-banner hidden" style="border-color: var(--danger);">
+        <div class="badge badge-danger" style="margin-bottom: 12px;">ELIMINATED</div>
+        <h2 style="color: var(--danger); font-size: 1.8rem; margin-bottom: 8px;">💀 You Were Voted Out!</h2>
+        <p style="color: var(--text-muted);">You are spectating the remaining players in this round.</p>
+      </div>
+
+      <!-- Secret Card Reveal Section -->
+      <div id="player-card-section" class="secret-card-container hidden">
+        <div id="secret-card" class="secret-card">
+          <div id="card-content-inner">
+            <div class="secret-card-hint">
+              <span style="font-size: 2.5rem;">🔒</span>
+              <span>PRESS & HOLD OR TAP TO REVEAL YOUR SECRET DISH</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Turn View for Player -->
+      <div id="player-question-section" class="hidden">
+        <div class="question-banner">
+          <div class="badge badge-warning turn-counter-display" style="margin-bottom: 12px;">Round 1 • Turn 1</div>
+          <div class="question-speaker question-speaker-name">Player's Turn</div>
+          <div class="question-text question-text-content">"Question text..."</div>
+        </div>
+
+        <!-- Host Unlocked Player Turn Controls -->
+        <div id="player-turn-nav-buttons" class="hidden" style="display: flex; gap: 12px; margin-top: 16px;">
+          <button id="btn-player-prev-turn" class="btn btn-secondary" style="flex: 1;">◀️ Prev Turn</button>
+          <button id="btn-player-next-turn" class="btn" style="flex: 1;">Next Turn ➡️</button>
+        </div>
+      </div>
+
+      <!-- Voting View for Player -->
+      <div id="player-vote-section" class="hidden">
+        <h2 style="text-align: center; margin-bottom: 8px;">🗳️ Cast Your Elimination Vote</h2>
+        
+        <!-- Live Voting Readiness Tracker & Timer Banner -->
+        <div class="voting-readiness-container"></div>
+
+        <div id="player-vote-options" class="vote-grid"></div>
+      </div>
+
+      <!-- End-of-Game Imposter Guess Screen for Player -->
+      <div id="player-imposter-guess-view" class="hidden">
+        <div id="imposter-food-guess-container"></div>
+      </div>
+
+      <!-- Reveal / Winner Screen for Player -->
+      <div id="player-reveal-section" class="hidden">
+        <div class="question-banner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(255, 64, 129, 0.2));">
+          <div class="badge badge-primary" style="margin-bottom: 12px;">GAME OVER</div>
+          <h2 class="reveal-winner-title" style="font-size: 2rem; color: var(--primary); margin-bottom: 8px;">WINNER ANNOUNCEMENT</h2>
+          <div class="reveal-winner-names" style="font-size: 1.2rem; font-weight: bold; color: var(--warning); margin-bottom: 20px;"></div>
+
+          <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
+            <div class="badge badge-warning" style="margin-bottom: 8px;">SECRET INDIAN DISH</div>
+            <div class="food-title reveal-food-name">Food Name</div>
+            <div class="food-desc reveal-food-desc">(Description)</div>
+          </div>
+
+          <!-- Imposter vs Counter Player vs Normal Crowd Breakdown -->
+          <div class="reveal-imposters-container"></div>
+          <div class="reveal-counter-player-container"></div>
+          <div class="reveal-normal-crowd-container"></div>
+        </div>
+
+        <!-- Leaderboard Table Container -->
+        <div class="leaderboard-table-container"></div>
+      </div>
+    </div>
+
+    <!-- SERVER CONTROL PANEL VIEW -->
+    <div id="server-view" class="panel hidden">
+      <div class="server-header">
+        <div>
+          <span class="badge badge-warning">SERVER CONTROL</span>
+          <h2 style="font-size: 1.8rem; font-weight: 800; margin-top: 4px;">Host Dashboard</h2>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="btn-server-restart-game" class="btn btn-warning" style="padding: 8px 16px; font-size: 0.9rem; background: rgba(255, 171, 0, 0.2); border-color: var(--warning); color: var(--warning);">
+            🔄 Restart Game
+          </button>
+          <button class="btn btn-secondary btn-back-home" style="padding: 8px 16px; font-size: 0.9rem;">Exit Host Mode</button>
+        </div>
+      </div>
+
+      <!-- Network Join Info & QR Code -->
+      <div class="qr-section">
+        <img id="server-qr-code" src="" alt="QR Code Join Link">
+        <div class="qr-info">
+          <h4>📱 Tell Players to Join at:</h4>
+          <code id="server-ip-display">http://localhost:3000</code>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">
+            Or scan QR code on mobile devices connected to the same Wi-Fi.
+          </p>
+        </div>
+      </div>
+
+      <!-- LOBBY HOST SETUP SECTION -->
+      <div id="server-lobby-section">
+        <!-- Category Selection -->
+        <div style="margin-bottom: 20px; background: rgba(10, 15, 26, 0.6); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <label class="form-label" style="text-align: center; display: block; margin-bottom: 12px; color: var(--primary); font-weight: bold;">
+            🎯 CHOOSE GAME CATEGORY / THEME
+          </label>
+          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-category-pill active" data-cat="INDIAN_CUISINE">🍲 Indian Cuisine</button>
+            <button class="btn btn-category-pill" data-cat="ANIMALS">🐅 Animals</button>
+            <button class="btn btn-category-pill" data-cat="INDIAN_PLACES">🏰 Indian Places</button>
+          </div>
+        </div>
+
+        <!-- Counter Role (Similar Word) Toggle -->
+        <div style="margin-bottom: 20px; background: rgba(10, 15, 26, 0.6); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-weight: bold; color: var(--warning); font-size: 0.95rem;">🎭 COUNTER ROLE (SIMILAR WORD)</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Gives 1 non-imposter a related word to confuse the voting!</div>
+          </div>
+          <button id="btn-toggle-counter-role" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.85rem;">
+            🔒 Counter Role: OFF
+          </button>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label class="form-label" style="text-align: center; display: block; margin-bottom: 10px;">
+            NUMBER OF OUT OF THE LOOP PLAYERS
+          </label>
+          <div class="stepper-control">
+            <button id="btn-imposter-minus" class="stepper-btn">-</button>
+            <div id="imposter-count-val" class="stepper-val">1</div>
+            <button id="btn-imposter-plus" class="stepper-btn">+</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3>Connected Players (<span id="server-player-count">0</span>)</h3>
+          <span style="font-size: 0.85rem; color: var(--text-muted);">Min 3 players needed</span>
+        </div>
+
+        <div id="server-players-grid" class="players-grid"></div>
+
+        <button id="btn-start-game" class="btn btn-large" style="margin-top: 24px;">🚀 Start Game</button>
+      </div>
+
+      <!-- PLAYING / QUESTIONS HOST MONITOR -->
+      <div id="server-play-section" class="hidden">
+        <div class="question-banner">
+          <div class="badge badge-warning turn-counter-display" style="margin-bottom: 12px;">Round 1 • Turn 1</div>
+          <div class="question-speaker question-speaker-name">Player's Turn</div>
+          <div class="question-text question-text-content">"Question text..."</div>
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap;">
+          <button id="btn-previous-turn" class="btn btn-secondary" style="flex: 1;">◀️ Previous Turn</button>
+          <button id="btn-next-turn" class="btn" style="flex: 1;">➡️ Next Turn</button>
+          <button id="btn-skip-questions" class="btn btn-secondary" style="flex: 1.5; background: rgba(255, 171, 0, 0.2); border-color: var(--warning); color: var(--warning);">
+            ⏭️ Skip to Voting
+          </button>
+        </div>
+      </div>
+
+      <!-- VOTING DASHBOARD HOST MONITOR -->
+      <div id="server-vote-section" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <h3>🗳️ Live Elimination Voting</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button id="btn-toggle-hide-votes" class="btn btn-secondary">🙈 Origins: Visible</button>
+            <button id="btn-toggle-hide-counts" class="btn btn-secondary">🔢 Numbers: Visible</button>
+          </div>
+        </div>
+
+        <!-- Custom Voting Timer Controls -->
+        <div style="display: flex; gap: 10px; align-items: center; background: rgba(10, 15, 26, 0.6); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px; flex-wrap: wrap;">
+          <span style="font-weight: bold; font-size: 0.9rem; color: var(--warning);">⏱️ Voting Countdown Timer:</span>
+          <input type="number" id="input-voting-timer-seconds" class="input-text" value="30" min="5" max="300" style="width: 80px; padding: 6px 10px; text-align: center;">
+          <span style="font-size: 0.85rem; color: var(--text-muted);">sec</span>
+          <button id="btn-start-voting-timer" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">
+            ▶️ Start Timer
+          </button>
+        </div>
+
+        <!-- Live Voting Readiness Tracker & Countdown Banner -->
+        <div class="voting-readiness-container"></div>
+
+        <div id="server-vote-tally-grid" class="vote-grid"></div>
+
+        <button id="btn-process-elimination" class="btn btn-danger btn-large" style="margin-top: 24px;">
+          ⚡ Eliminate Highest Voted Player
+        </button>
+      </div>
+
+      <!-- SERVER ROUND ELIMINATION MODAL -->
+      <div id="server-elim-section" class="hidden">
+        <div id="server-elim-box" class="question-banner"></div>
+        <button id="btn-continue-round" class="btn btn-large" style="margin-top: 24px;">➡️ Continue to Next Round</button>
+      </div>
+
+      <!-- SERVER END-OF-GAME IMPOSTER GUESS HOST MONITOR -->
+      <div id="server-imposter-guess-section" class="hidden">
+        <div class="question-banner">
+          <div class="badge badge-warning" style="margin-bottom: 12px;">IMPOSTER GUESS PHASE</div>
+          <h2 style="color: var(--secondary); font-size: 1.8rem; margin-bottom: 12px;">🤫 Imposters Are Guessing the Secret Food Item</h2>
+          <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 20px;">
+            The game has ended! Imposters are currently selecting from 4 decoy Indian dishes on their mobile screens for <strong>+150 bonus points</strong>.
+          </p>
+          <div id="server-imposter-guess-status" style="font-size: 1.1rem; font-weight: bold; color: var(--primary); margin-bottom: 20px;">
+            ⏳ Waiting for Imposter guesses...
+          </div>
+          <button id="btn-skip-imposter-guess" class="btn btn-secondary" style="background: rgba(255, 171, 0, 0.2); border-color: var(--warning); color: var(--warning);">
+            ⏭️ Skip Guessing & Reveal Results
+          </button>
+        </div>
+      </div>
+
+      <!-- FINAL REVEAL HOST DASHBOARD -->
+      <div id="server-reveal-section" class="hidden">
+        <div class="question-banner" style="background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(255, 64, 129, 0.2));">
+          <div class="badge badge-primary" style="margin-bottom: 12px;">GAME OVER</div>
+          <h2 class="reveal-winner-title" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 8px;">WINNER ANNOUNCEMENT</h2>
+          <div class="reveal-winner-names" style="font-size: 1.3rem; font-weight: bold; color: var(--warning); margin-bottom: 24px;"></div>
+
+          <div style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <div class="badge badge-warning" style="margin-bottom: 10px;">SECRET INDIAN DISH</div>
+            <div class="food-title reveal-food-name">Food Name</div>
+            <div class="food-desc reveal-food-desc">(Description)</div>
+          </div>
+
+          <!-- Imposter vs Counter Player vs Normal Crowd Breakdown -->
+          <div class="reveal-imposters-container"></div>
+          <div class="reveal-counter-player-container"></div>
+          <div class="reveal-normal-crowd-container"></div>
+        </div>
+
+        <!-- Leaderboard Table Container -->
+        <div class="leaderboard-table-container"></div>
+
+        <button id="btn-reset-lobby" class="btn btn-large" style="margin-top: 24px;">🔄 Play Another Round</button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/foodData.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

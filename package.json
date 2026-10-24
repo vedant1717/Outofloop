@@ -1,0 +1,16 @@
+{
+  "name": "out-of-the-loop-game",
+  "version": "1.0.0",
+  "description": "Out of the Loop Food Edition - Real-time party game for mobile and laptop",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ip": "^2.0.1",
+    "qrcode": "^1.5.3",
+    "socket.io": "^4.7.5"
+  }
+}
