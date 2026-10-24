@@ -38,8 +38,8 @@ A real-time, multi-device (mobile & laptop) party social deduction web game insp
 
 ### 2. Installation
 ```bash
-git clone https://github.com/<your-username>/out-of-the-loop-game.git
-cd out-of-the-loop-game
+git clone https://github.com/vedant1717/Outofloop.git
+cd Outofloop
 npm install
 ```
 
